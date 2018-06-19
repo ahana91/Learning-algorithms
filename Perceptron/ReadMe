@@ -1,0 +1,5 @@
+Implements Rosenblatt's perceptron - a single-layer, single-neuron learning algorithm
+for linearly separable data classification
+Weights can be updated in online/batch mode
+Datasets with linearly as well as non-linearly separable training and test data are provided
+Note that perceptron will not converge with non-linearly separable data
