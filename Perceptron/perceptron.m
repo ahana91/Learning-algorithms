@@ -2,20 +2,27 @@
 % threshold boundary between two classes
 
 % Inputs and parameters to be defined by user
-rule = 2;      % 1 : implements perceptron batch update rule (updates on all
+rule = 1;      % 1 : implements perceptron batch update rule (updates on all
                % misclassified training samples at one go
-               % 2 : implements perceptron online rule (updates only when a sample is misclassified)
-               
+               % 2 : implements perceptron online rule (updates only when a sample is misclassified)      
 maxepoch = 50; 
 eta = 0.1;     % Learning rate
 randflag = 1;  % 1 : randomize order of training samples (for online rule)
 
 
 % Load data
-load data_nonlin_sep
+% trainx : Training data (Samples x dimensions)
+% Ytrain : Training labels (Samples x no. of classes) e.g. [1 0] --> class 1
+% crossx : Cross-validation data (Samples x dimensions)
+% Ycross : Test labels (Samples x no. of classes) e.g. [1 0] --> class 1
+% Two datasets available: 
+% data_lin_sep: linearly separable data (2 clusters)
+% data_nonlin_sep : non-linearly separable data (4 clusters)
+
+load data_lin_sep
 [N, D] = size(trainx);
-x1 = trainx(Ytrain(:,1) == 1,:);  % class 1 samples
-x2 = trainx(Ytrain(:,2) == 1,:);  % class 2 samples
+x1 = trainx(Ytrain(:, 1) == 1,:);  % class 1 samples
+x2 = trainx(Ytrain(:, 2) == 1,:);  % class 2 samples
 [N1, ~] = size(x1); [N2, ~] = size(x2);
 
 
@@ -60,18 +67,21 @@ while (epoch <= maxepoch)
             end
             misclassified = 0;
             cost = 0;
-            error = 0;
+            err = 0;
             
+            % Take training samples one by one
             for i = 1:N
                 x = X(I(i), :);
                 b = a*x';
+                
+                % Update only when a sample is misclassified
                 a = a + eta*x*(b<0);
                 misclassified = misclassified + x*(b<0);
                 cost = cost - b*(b<0);
-                error = error + (b<0);
+                err = err + (b<0);
             end
             
-            errorvec = [errorvec (error*100)/N];
+            errorvec = [errorvec (err*100)/N];
             
     end
     
@@ -89,8 +99,8 @@ end
 % 2D data)
 if D == 2
     figure; hold on
-    plot(x1(:,2), x1(:,3), 'og', 'MarkerFaceColor', 'g', 'MarkerSize', 12, 'MarkerEdgeColor', 'k');
-    plot(- x2(:,2), - x2(:,3), 'ob', 'MarkerFaceColor', 'b', 'MarkerSize', 12, 'MarkerEdgeColor', 'k');
+    plot(trainx(Ytrain(:, 1) == 1, 1), trainx(Ytrain(:, 1) == 1, 2), 'og', 'MarkerFaceColor', 'g', 'MarkerSize', 12, 'MarkerEdgeColor', 'k');
+    plot(trainx(Ytrain(:, 2) == 1, 1), trainx(Ytrain(:, 2) == 1, 2), 'ob', 'MarkerFaceColor', 'b', 'MarkerSize', 12, 'MarkerEdgeColor', 'k');
     xlabel('x_1', 'FontSize', 20); ylabel('x_2', 'FontSize', 20);
     xmin = min(trainx(:,1)); xmax = max(trainx(:,1));
     ymin = min(trainx(:,2)); ymax = max(trainx(:,2));
@@ -109,3 +119,18 @@ end
 figure;
 plot(errorvec, '-og', 'LineWidth', 3);
 xlabel('Iterations', 'FontSize', 20); ylabel('Classification error', 'FontSize', 20);
+
+
+% Test phase
+[Ntest, D1] = size(crossx);
+if D ~= D1
+    error('Dimensions of training and test data are not same');
+end
+
+crossx = [ones(Ntest,1) crossx];
+Ypred = zeros(Ntest, 2);
+inference = sum(a.*crossx, 2);
+Ypred(inference > 0, 1) = 1;
+Ypred(inference < 0, 2) = 1;
+
+class_err = (sum(abs(Ycross(:,1) - Ypred(:,1)))*100) / Ntest;
