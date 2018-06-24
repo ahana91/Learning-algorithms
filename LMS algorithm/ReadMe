@@ -1,0 +1,4 @@
+Implements LMS (Least Mean Squares) algorithm for binary classification.
+Determines a linear boundary by minimizing the sum of squares of distances of the training samples to the separating hyperplane
+Takes into account all training samples instead of just misclassified ones
+Converges for linearly as well as nonlinearly separable datasets
